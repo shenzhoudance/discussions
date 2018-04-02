@@ -834,7 +834,324 @@ devise :database_authenticatable, :registerable,
         :recoverable, :rememberable, :trackable, :validatable
 
  has_many :discussions, dependent: :destroy
-has_many :channels, through: :discussions
+ has_many :channels, through: :discussions
 end
 ```
 ![image](https://ws3.sinaimg.cn/large/006tKfTcgy1fpyfe8a5fgj31kw0qyaio.jpg)
+
+```
+git checkout -b devise-controller
+app/controllers/discussions_controller.rb
+---
+class DiscussionsController < ApplicationController
+  before_action :set_discussion, only: [:show, :edit, :update, :destroy]
+
+  # GET /discussions
+  # GET /discussions.json
+  def index
+    @discussions = Discussion.all
+  end
+
+  # GET /discussions/1
+  # GET /discussions/1.json
+  def show
+  end
+
+  # GET /discussions/new
+  def new
+    @discussion = Discussion.new
+  end
+
+  # GET /discussions/1/edit
+  def edit
+  end
+
+  # POST /discussions
+  # POST /discussions.json
+  def create
+    @discussion = Discussion.new(discussion_params)
+
+    respond_to do |format|
+      if @discussion.save
+        format.html { redirect_to @discussion, notice: 'Discussion was successfully created.' }
+        format.json { render :show, status: :created, location: @discussion }
+      else
+        format.html { render :new }
+        format.json { render json: @discussion.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # PATCH/PUT /discussions/1
+  # PATCH/PUT /discussions/1.json
+  def update
+    respond_to do |format|
+      if @discussion.update(discussion_params)
+        format.html { redirect_to @discussion, notice: 'Discussion was successfully updated.' }
+        format.json { render :show, status: :ok, location: @discussion }
+      else
+        format.html { render :edit }
+        format.json { render json: @discussion.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /discussions/1
+  # DELETE /discussions/1.json
+  def destroy
+    @discussion.destroy
+    respond_to do |format|
+      format.html { redirect_to discussions_url, notice: 'Discussion was successfully destroyed.' }
+      format.json { head :no_content }
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_discussion
+      @discussion = Discussion.find(params[:id])
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def discussion_params
+      params.require(:discussion).permit(:title, :content)
+    end
+end
+---
+lass DiscussionsController < ApplicationController
+  before_action :set_discussion, only: [:show, :edit, :update, :destroy]
+  before_action :find_channels, only: [:index, :show, :new, :edit]
+  before_action :authenticate_user!, except: [:index, :show]
+
+  # GET /discussions
+  # GET /discussions.json
+  def index
+    @discussions = Discussion.all.order('created_at desc')
+  end
+
+  # GET /discussions/1
+  # GET /discussions/1.json
+  def show
+    @discussions = Discussion.all.order('created_at desc')
+  end
+
+  # GET /discussions/new
+  def new
+    @discussion = current_user.discussions.build
+  end
+
+  # GET /discussions/1/edit
+  def edit
+  end
+
+  # POST /discussions
+  # POST /discussions.json
+  def create
+    @discussion = current_user.discussions.build(discussion_params)
+
+    respond_to do |format|
+      if @discussion.save
+        format.html { redirect_to @discussion, notice: 'Discussion was successfully created.' }
+        format.json { render :show, status: :created, location: @discussion }
+      else
+        format.html { render :new }
+        format.json { render json: @discussion.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # PATCH/PUT /discussions/1
+  # PATCH/PUT /discussions/1.json
+  def update
+    respond_to do |format|
+      if @discussion.update(discussion_params)
+        format.html { redirect_to @discussion, notice: 'Discussion was successfully updated.' }
+        format.json { render :show, status: :ok, location: @discussion }
+      else
+        format.html { render :edit }
+        format.json { render json: @discussion.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /discussions/1
+  # DELETE /discussions/1.json
+  def destroy
+    @discussion.destroy
+    respond_to do |format|
+      format.html { redirect_to discussions_url, notice: 'Discussion was successfully destroyed.' }
+      format.json { head :no_content }
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_discussion
+      @discussion = Discussion.find(params[:id])
+    end
+
+    def find_channels
+      @channels = Channel.all.order('created_at desc')
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def discussion_params
+      params.require(:discussion).permit(:title, :content, :channel_id)
+    end
+end
+---
+app/controllers/channels_controller.rb
+---
+class ChannelsController < ApplicationController
+  before_action :set_channel, only: [:show, :edit, :update, :destroy]
+
+  # GET /channels
+  # GET /channels.json
+  def index
+    @channels = Channel.all
+  end
+
+  # GET /channels/1
+  # GET /channels/1.json
+  def show
+  end
+
+  # GET /channels/new
+  def new
+    @channel = Channel.new
+  end
+
+  # GET /channels/1/edit
+  def edit
+  end
+
+  # POST /channels
+  # POST /channels.json
+  def create
+    @channel = Channel.new(channel_params)
+
+    respond_to do |format|
+      if @channel.save
+        format.html { redirect_to @channel, notice: 'Channel was successfully created.' }
+        format.json { render :show, status: :created, location: @channel }
+      else
+        format.html { render :new }
+        format.json { render json: @channel.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # PATCH/PUT /channels/1
+  # PATCH/PUT /channels/1.json
+  def update
+    respond_to do |format|
+      if @channel.update(channel_params)
+        format.html { redirect_to @channel, notice: 'Channel was successfully updated.' }
+        format.json { render :show, status: :ok, location: @channel }
+      else
+        format.html { render :edit }
+        format.json { render json: @channel.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /channels/1
+  # DELETE /channels/1.json
+  def destroy
+    @channel.destroy
+    respond_to do |format|
+      format.html { redirect_to channels_url, notice: 'Channel was successfully destroyed.' }
+      format.json { head :no_content }
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_channel
+      @channel = Channel.find(params[:id])
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def channel_params
+      params.require(:channel).permit(:channel)
+    end
+end
+---
+class ChannelsController < ApplicationController
+  before_action :set_channel, only: [:show, :edit, :update, :destroy]
+
+  # GET /channels
+  # GET /channels.json
+  def index
+    @channels = Channel.all
+    @discussions = Discussion.all.order('created_at desc')
+  end
+
+  # GET /channels/1
+  # GET /channels/1.json
+  def show
+    @discussions = Discussion.where('channel_id = ?', @channel.id)
+    @channels = Channel.all
+  end
+
+  # GET /channels/new
+  def new
+    @channel = Channel.new
+  end
+
+  # GET /channels/1/edit
+  def edit
+  end
+
+  # POST /channels
+  # POST /channels.json
+   def create
+    @channel = Channel.new(channel_params)
+
+    respond_to do |format|
+      if @channel.save
+        format.html { redirect_to channels_path, notice: 'Channel was successfully created.' }
+        format.json { render :show, status: :created, location: @channel }
+      else
+        format.html { render :new }
+        format.json { render json: @channel.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # PATCH/PUT /channels/1
+  # PATCH/PUT /channels/1.json
+  def update
+    respond_to do |format|
+      if @channel.update(channel_params)
+        format.html { redirect_to channels_path, notice: 'Channel was successfully updated.' }
+        format.json { render :show, status: :ok, location: @channel }
+      else
+        format.html { render :edit }
+        format.json { render json: @channel.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /channels/1
+  # DELETE /channels/1.json
+  def destroy
+    @channel.destroy
+    respond_to do |format|
+      format.html { redirect_to channels_url, notice: 'Channel was successfully destroyed.' }
+      format.json { head :no_content }
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_channel
+      @channel = Channel.find(params[:id])
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def channel_params
+      params.require(:channel).permit(:channel)
+    end
+end
+---
