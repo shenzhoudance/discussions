@@ -308,6 +308,22 @@ $ reply.find_each(&:save)
 
 # Let's Build: With Ruby on Rails - Forum
 
+关于专案的增量开发的流程体系：
+
+## 一、基本页面的开发
+- gems 的安装
+- welcome 页面的制作 + layouts 页面的制作
+- devise 用户系统的制作
+
+##  二、基本功能的开发
+- discussions 技能功能的制作
+
+##  三、核心功能的开发
+
+##  四、页面设计的美化
+
+##  五、专案开发的部署
+
 ```
 cd workspace
 cd discussions
@@ -320,3 +336,169 @@ rails s
 http://localhost:3000/
 ```
 ![image](https://i.loli.net/2018/04/02/5ac1969a5cbdd.png)
+
+```
+git checkout -b gems
+---
+gem 'bulma-rails', '~> 0.6.2'
+gem 'simple_form', '~> 3.5'
+gem 'devise', '~> 4.4', '>= 4.4.1'
+gem 'gravatar_image_tag', '~> 1.2'
+gem 'jquery-rails', '~> 4.3', '>= 4.3.1'
+gem 'rolify', '~> 5.2'
+gem 'cancancan', '~> 2.1', '>= 2.1.3'
+gem 'friendly_id', '~> 5.2', '>= 5.2.3'
+gem 'redcarpet', '~> 3.4'
+gem 'coderay', '~> 1.1', '>= 1.1.2'
+---
+group :development, :test do
+---
+gem 'guard', '~> 2.14', '>= 2.14.2'
+gem 'guard-livereload', '~> 2.5', require: false
+---
+bundle install
+guard init livereload
+bundle exec guard
+exit
+---
+rails generate simple_form:install
+rails generate devise:install
+rails generate devise:User
+rake db:migrate
+rails g controller home index
+```
+```
+---
+app/views/layouts/application.html.erb
+---
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Discussions</title>
+    <%= csrf_meta_tags %>
+
+    <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
+</html>
+---
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Discussions</title>
+    <%= csrf_meta_tags %>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%= stylesheet_link_tag "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" %>
+    <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+
+  </head>
+
+  <body>
+    <% if flash[:notice] %>
+      <div class="notification is-success global-notification">
+        <p class="notice"><%= notice %></p>
+      </div>
+    <% end %>
+    <% if flash[:alert] %>
+    <div class="notification is-danger global-notification">
+      <p class="alert"><%= alert %></p>
+    </div>
+    <% end %>
+     <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <%= link_to root_path, class:"navbar-item" do %>
+          <h1 class="title is-5">Discussions</h1>
+        <% end  %>
+      <div class="navbar-burger burger" data-target="navbar">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+
+      <div id="navbar" class="navbar-menu">
+        <div class="navbar-end">
+          <% if user_signed_in? %>
+          <div class="navbar-item">
+            <div class="field is-grouped">
+              <%= link_to 'New Discussion', new_discussion_path, class:"button is-info" %>
+            </div>
+          </div>
+          <div class="navbar-item has-dropdown is-hoverable">
+            <%= link_to 'Account', edit_user_registration_path, class: "navbar-link" %>
+            <div class="navbar-dropdown is-right">
+              <%= link_to current_user.username, edit_user_registration_path, class:"navbar-item" %>
+              <%= link_to "Log Out", destroy_user_session_path, method: :delete, class:"navbar-item" %>
+            </div>
+          </div>
+         <% else %>
+         <div class="navbar-item">
+          <div class="field is-grouped">
+
+            <p class="control">
+              <%= link_to 'New Discussion', new_discussion_path, class:"button is-info" %>
+            </p>
+
+            <p class="control">
+              <%= link_to "Sign In", new_user_session_path, class: "button is-light"%>
+            </p>
+
+            <p class="control">
+              <%= link_to "Sign up", new_user_registration_path, class: "button is-light" %>
+            </p>
+          </div>
+          </div>
+          <% end %>
+
+        </div>
+    </div>
+  </nav>
+
+<section class="section">
+  <div class="container">
+    <%= yield %>
+  </div>
+</section>
+
+  </body>
+</html>
+```
+```
+app/assets/stylesheets/application.scss
+---
+@import "bulma";
+```
+![image](https://ws2.sinaimg.cn/large/006tKfTcgy1fpybue1hmhj31kw07q3zk.jpg)
+![image](https://ws2.sinaimg.cn/large/006tKfTcgy1fpybvuje7uj31kw0fa764.jpg)
+![image](https://ws2.sinaimg.cn/large/006tKfTcgy1fpybvzaublj31kw0fd40a.jpg)
+
+```
+app/controllers/registrations_controller.rb
+---
+class RegistrationsController < Devise::RegistrationsController
+
+  private
+
+  def sign_up_params
+    params.require(:user).permit(:username, :email, :password, :password_confirmation)
+  end
+
+  def account_update_params
+    params.require(:user).permit(:username, :email, :password, :password_confirmation, :current_password)
+  end
+
+end
+---
+```
+```
+rails g migration addUsernameToUsers username:string
+rake db:migrate
+rails server
+```
+![image](https://ws2.sinaimg.cn/large/006tKfTcgy1fpyc6fp50cj31kw0ceq4n.jpg)
