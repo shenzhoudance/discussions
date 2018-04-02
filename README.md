@@ -767,3 +767,74 @@ $spacing-100: 100px;
 ---
 ```
 ![image](https://ws3.sinaimg.cn/large/006tKfTcgy1fpyd0nc5cej31kw0aadh5.jpg)
+
+```
+rails g migration addUserIdToDiscussions user_id:integer
+rake db:migrate
+rails g model Reply reply:text
+rake db:migrate
+rails g scaffold Channel channel:string
+rails g migration addDiscussionIdToReplies discussin_id:integer
+rake db:migrate
+rails g migration addUserIdToReplies user_id:integer
+rake db:migrate
+rails g migration addChannelIdToDiscussions channel_id:integer
+rake db:migrate
+rails g migration addDiscussionIdToChannels discussion_id:integer
+```
+![image](https://ws4.sinaimg.cn/large/006tKfTcgy1fpydkw12k3j31ji0jwdld.jpg)
+
+```
+config/routes.rb
+---
+Rails.application.routes.draw do
+  resources :channels
+  resources :discussions
+  devise_for :users, controllers: { registrations: 'registrations' }
+  root 'discussions#index'
+end
+---
+Rails.application.routes.draw do
+resources :channels
+resources :discussions do
+  resources :replies
+end
+
+devise_for :users, controllers: { registrations: 'registrations' }
+root 'discussions#index'
+end
+```
+# 对应关系的处理
+```
+app/models/discussion.rb
+---
+belongs_to :channel
+belongs_to :user
+has_many :replies, dependent: :destroy
+
+validates :title, :content, presence: true
+end
+---
+app/models/reply.rb
+---
+belongs_to :discussion
+belongs_to :user
+validates :reply, presence: true
+end
+----
+app/models/channel.rb
+---
+has_many :discussions
+has_many :users, through: :discussions
+end
+---
+app/models/user.rb
+---
+devise :database_authenticatable, :registerable,
+        :recoverable, :rememberable, :trackable, :validatable
+
+ has_many :discussions, dependent: :destroy
+has_many :channels, through: :discussions
+end
+```
+![image](https://ws3.sinaimg.cn/large/006tKfTcgy1fpyfe8a5fgj31kw0qyaio.jpg)
