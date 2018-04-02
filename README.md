@@ -305,3 +305,18 @@ $ reload!
 $ channel.find_each(&:save)
 $ reply.find_each(&:save)
 ```
+
+# Let's Build: With Ruby on Rails - Forum
+
+```
+cd workspace
+cd discussions
+git init
+git add .
+git commit -m "initial commit"
+git remote add origin https://github.com/shenzhoudance/discussions.git
+git push -u origin master
+rails s
+http://localhost:3000/
+```
+![image](https://i.loli.net/2018/04/02/5ac1969a5cbdd.png)
